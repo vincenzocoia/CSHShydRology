@@ -1,0 +1,148 @@
+---
+title: "The basics of getting Water Survey of Canada data for studies using ECDataExplorer"
+author: "CSHS hydRology Team"
+date: "October 2021"
+output: rmarkdown::word_document
+
+vignette: >
+  %\VignetteIndexEntry{data source differences}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(CSHShydRology)
+library(tidyhydat)
+
+
+```
+
+
+
+## Accessing ECDataExplorer
+
+Go to:
+https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/explorer.html
+
+## Downloading and Installing ECDE:
+
+To install ECDE to your computer, download the Microsoft Windows Installer from the ftp download site. Installation instructions and system requirements can be found in the ECDE Reference Manual.
+
+select “Download the Environment Canada Data Explorer”
+
+select   ECDE_EDEC_2.2.9_32bit.msi
+
+File will download: takes ~12 minutes as you are downloading the entire HYDAT database to your computer.  Also it is a good idea to download the pdfs that are the manual, the database definition, and the release notes.
+
+Run the installer:
+
+Once installed you then Open ECDE.  The visual interface shows a map of Canada and criteria that can be used to select stations.  This is a very flexible
+way to investigate data.  Double clicking on an individual station provides detailed station metadata and a plot of the observed daily streamflow.
+
+
+Use the interface to select stations:  here stations from 08M  that have flow data and are RHBN are selected.
+
+
+```{r, echo=FALSE, fig.width=6, fig.height=3, fig.cap = "Figure 1. The ECDE interface showing the locations of selected stations, and the criteria used."}
+
+
+knitr::include_graphics("Figure 1.png")
+```
+
+```{r, echo =FALSE,fig.width=7, fig.height=4, fig.cap = "Figure 2. The metadata and hydrograph for an individual station."}
+
+knitr::include_graphics("Figure 1a.png")
+```
+
+Close the station tab and return to a window lie  Figure 1.
+
+Place the cursor over the list of stations and "Right click".
+
+“Select all stations”
+
+“Add to favourite station list”
+
+
+Then move to “File” on the top bar – select.
+
+Then select “Save Favourite Station List”.
+
+Save to a project folder as "EnSim Table Data *.tb0"  This downloads the station metadata.
+
+Next, we access the daily streamflow data.  Move to "Export" and select and check off “Flow” “Daily”, and “TimeSeries csv" and set the folder to the one you want to place the data in and then “Okay”.
+
+
+```{r, echo=FALSE, fig.width=6, fig.height=3, fig.cap = "Figure 3. Selecting the attributes for the daily flow data to be downloaded." }
+
+
+knitr::include_graphics("Figure 2.png")
+```
+ 
+
+
+Now the metadata and files with daily flow time series are in the project folder `C://p_ch_functions/ECDE sample data`.
+
+ 
+```{r, echo=FALSE, fig.width=6, fig.height=3, fig.cap = "Figure 4. A screen capture of the folder where data from ECDE has been stored."}
+
+
+knitr::include_graphics("Figure 3.png")
+```
+
+
+
+
+Now, we can use the __CSHShydRology__ function `ch_get_ECDE_metadata()` to convert the station text file `FavHydatStations.tb0` to a dataframe containing the metadata for these five stations. 
+
+```{r, echo=TRUE,fig.width=6, fig.height=5}
+
+#set the working directory to the folder with the downloaded data
+setwd("C:/p_ch_functions/ECDE sample data")
+
+HYDAT_list <- ch_get_ECDE_metadata("FavHydatStations.tb0")
+
+str(HYDAT_list)
+
+# save the dataframe to a csv file for future use.
+write.csv(HYDAT_list,"study_stations_metadata.csv", row.names=FALSE)
+
+```
+
+Now read each of the daily streamflow from the files in a loop using the  __CSHShydRology__ functions `ch_read_ECDE_flows()` and plot the hydrographs using `ch_qa_hydrogaph()`.
+
+
+```{r, echo=TRUE,fig.width=6, fig.height=5, fig.cap = "Figure 5. Plots of the daily data from the five stations."}
+
+
+setwd("C:/p_ch_functions/ECDE sample data")
+
+
+# make a array of files that end with "_ts.csv" 
+Files <- list.files(pattern="_ts.csv")
+
+length(Files)
+
+par(mfrow=c(5,1))
+for(kk in 1:length(Files)){
+
+  
+  mdata <- ch_read_ECDE_flows(Files[kk])
+m_test <- ch_qa_hydrograph(mdata)
+
+}
+```
+
+
+ECDE is a useful way to select and access daily streamflow data for use with __CSHShydRology__.  Storing the files to a directory ensures that the data will remain static during a study and analysis can be reproduced using the same data.   
+
+
+_Other articles in this series are available on the hydRology page of the CSHS GreyJay website:_   `https://cshs.cwra.org/greyjay/`
+
+
+
+P.H.Whitfield 
+
+

@@ -1,0 +1,166 @@
+---
+title: "Demonstrating the function ch_polar_plot_peaks()"
+author: "CSHS hydRology Team"
+date: "August 2021"
+output: rmarkdown::word_document
+
+vignette: >
+  %\VignetteIndexEntry{Demo CSHS functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(CSHShydRology)
+library(tidyhydat)
+
+source("C:/R-packages/git_CSHShydRology/R/ch_circ_mean_reg.R")
+source("C:/R-packages/git_CSHShydRology/R/ch_sh_get_amax.R")
+source("C:/R-packages/git_CSHShydRology/R/ch_polar_plot_peaks.R")
+
+
+data(HYDAT_list)
+
+```
+
+One of the key opportunities for users of the R-package __CSHShydRology__ is that users can tap into the computer functions that are used by other professionals across Canada. Many of the functions have been developed by practitioners and researchers and are shared so that the entire community can perform analysis and interpretation based on the current state of the art.
+The current version of __CSHShydRology__ can be obtained from GitHub at https://github.com/CSHS-CWRA/CSHShydRology. It is planned to release the package through CRAN (https://cran.r-project.org/) later this year.
+
+## The function `ch_polar_plot_peaks()`
+
+The function `ch_polar_plot_peaks` provides a way of plotting a variety of information about flow peaks using circular statistics.  The base plot can be generated without any data.
+
+```{r, echo=TRUE, fig.width=5, fig.height=5, fig.cap = "Figure 1.  Basic polar plot"}
+
+ ch_polar_plot_peaks()
+ 
+
+```
+
+There are many possible combinations that can be used and some of these are demonstrated here.  First, we can add some predefined shading that highlights areas where nival and pluvial peaks generally occur.
+
+```{r, echo=TRUE, fig.width = 5, fig.height = 5, fig.cap = "Figure 2.  Shaded polar plot inidcating areas dominatd by Nival and Pluvial high flows"}
+
+
+ ch_polar_plot_peaks(shading = TRUE)
+ 
+
+```
+
+
+##  Plot the days of the annual maximum series (AMS)
+
+Using a sample data set available with __CSHShydRolgy__ we first extract the series of annual maxima.  These will be plotted as points on the perimeter of polar plot. The function `ch_sh_get_amax()` is used to get the series of annual maxima.  
+
+
+```{r, echo=TRUE, fig.width = 5, fig.height = 5, fig.cap = "Figure 3.  Plot of events based on day of year"}
+
+# plot of annual maximum series
+ data(W05AA008)
+ am <- ch_sh_get_amax(W05AA008)
+ str(am)
+ #plot the days on which the annual maxima occur.
+  ch_polar_plot_peaks(days = am$doy, title = "05AA008", shading = TRUE)
+```
+
+
+But we need to check that the annual maxima are based on entire years and not fragments such as may exist at the beginning and end of a record or for seasonally operated sites.  We can determine this by looking at how many days were observed in each year.
+
+`am$days`
+
+If there are partial years we need to remove them. This particular station has some years with partial records [<200 days] and others with seasonal operation [~240 days].  In the following we select only complete years [>=365 days].
+
+
+```{r, echo=TRUE, fig.width = 5, fig.height = 5, fig.cap = "Figure 4.  Plot of events based on day of year using only the annual maxima series for complete years"}
+
+# check that years are complete
+am$days
+
+#remove partial years
+ am <-am[am$days >= 365,]
+ 
+#plot the annual maxima for complete years
+ ch_polar_plot_peaks(days = am$doy, title = "05AA008", shading = TRUE)
+ 
+```
+
+It is also possible to pass the function an array of colours so that points are identifiable as over time.  Here we create a simple case where we assign colours to the points based on their order in time. Here, the early points in time are dark blue, then green and finally red.
+
+```{r, echo = TRUE, fig.width = 5, fig.height = 5, fig.cap = "Figure 5.  Plot of events based on day of year using only the annual maxima series for complete years and coloured by time order"}
+
+length(am$doy)
+
+pt_col <- c(rep("darkblue",20), rep("green",19), rep("red",19))
+
+ ch_polar_plot_peaks(days = am$doy, title = "05AA008", pt_col = pt_col, shading = TRUE)
+
+
+```
+
+## Plot the mean day of year and the regularity
+
+One of the appeals of circular statistics is that is handles datasets that spans across years.  This is necessary because sometimes the data spans across the end to start of years i.e. December 31 [day 365 or 366] and January 1 [day 1]. A simple average would give (365 + 1) / 2  or day 183 which is July 2.  Certainly not what would be intended.  Using circular functions overcomes that problem.
+
+The function `ch_circ_mean_reg()` can be used to obtain the number of observations, the circular mean, circular median, and the regularity [rho].  Regularity is used in hydrology as a dimensionless measure of the spread of the data.
+
+Jammalamadaka, S. Rao and SenGupta, A. (2001). Topics in Circular Statistics, Section 1.3, World Scientific Press, Singapore.
+
+Burn, D. H. 1997. Catchment similarity for regional flood frequency analysis using seasonality measures. Journal of Hydrology 202: 212-230.
+
+Either the mean of the median can be used as the direction, but this can have consequences since there may be a difference between the mean and the median since the median is a true observation while the mean may not be.
+
+
+```{r, echo=TRUE, fig.width = 5, fig.height = 5, fig.cap = "Figure 6.  Plot of mean day of year and regularty if events for the annual maximum series"}
+
+
+ #plot the centroid
+ m_r <- ch_circ_mean_reg(am$doy)
+
+# print the result
+print(m_r)
+
+ ch_polar_plot_peaks(direction = m_r$mean, regularity = m_r$regularity, title = "05AA008", shading = TRUE)
+
+
+```
+
+We might wish to demonstrate the actual days of events and the resultant mean and regularity. As in the following example.
+
+```{r, echo=TRUE, fig.width = 5, fig.height = 5, fig.cap = "Figure 7.  Plot of events based on day of year using only the annual maxima series for complete years and showing the mean day of year and the regularity for the series of events"}
+
+
+
+# plot peaks and centroid
+ ch_polar_plot_peaks(days = am$doy, direction = m_r$mean, regularity = m_r$regularity, title = "05AA008", shading = TRUE)
+
+
+```
+
+The preceding examples are for a single station, but `ch_polar_plot_peaks()` can also be used to show centroids from multiple stations.  Here we provide a synthetic example that demonstrates that capability.  
+
+```{r, echo=TRUE, fig.width = 5, fig.height = 5, fig.cap = "Figure 8.  Plot of centroids (mean day of year and regularity) for six hypothetical annual maxima series"}
+
+
+dirs <- c(151, 177, 205, 24, 320, 90)
+regs <- c(0.88, 0.97, 0.82, 0.58, 0.88, 0.55)
+mcols <- c("darkblue", "blue", "cyan", "green","darkgreen", "brown")
+msyms <- c(21, 21, 21, 24, 24, 21)
+mlabs <- c("Nival_1", "Nival_2", "Nival_3", "Pluvial_1", "Pluvial_2", "Mixed_1")
+
+# plot peaks and centroid
+ ch_polar_plot_peaks(direction = dirs, regularity = regs, cols = mcols, syms = msyms, labels =mlabs, 
+                     title = "05AA008", shading = TRUE)
+
+
+```
+
+The functions demonstrated here will help make polar plotting of peaks data more available to the users of __CSHShydRology__.
+
+
+_Other articles in this series are available on the hydRology page of the CSHS GreyJay website:_   `https://cshs.cwra.org/greyjay/`
+
+
+
+P.H.Whitfield 

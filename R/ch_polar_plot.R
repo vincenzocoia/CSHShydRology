@@ -108,7 +108,7 @@ ch_polar_plot <- function(bmw, lcol1 = c("black", "gray50"), lcol2 = c("black", 
     )
   }
 
-  # replot the first data set so it appreas on top of poylgons and then add the second
+  # replot the first data set so it appears on top of poylgons and then add the second
 
   radial.plot(as.numeric(series[, 2]), cpos,
     rp.type = "ps", line.col = lcol1[1],

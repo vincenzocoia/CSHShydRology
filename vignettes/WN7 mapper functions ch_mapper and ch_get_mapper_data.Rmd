@@ -1,0 +1,254 @@
+---
+title: "Demonstrating the functions ch_mapper() and ch_get_mapper_data()"
+author: "CSHS hydRology Team"
+date: "August 2021"
+output: rmarkdown::word_document
+
+vignette: >
+  %\VignetteIndexEntry{Demo CSHS functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(CSHShydRology)
+require(OpenStreetMap)
+require(sf)
+require(rgdal)
+
+library(magrittr)
+library(tidyr)
+library(dplyr)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+source("C:/R-packages/git_CSHShydRology/R/ch_mapper.R")
+source("C:/R-packages/git_CSHShydRology/R/ch_get_mapper_data.R")
+source("C:/R-packages/git_CSHShydRology/R/ch_tr_signs & sigs.R")
+source("C:/R-packages/git_CSHShydRology/R/ch_color_gradient.R")
+
+
+data(HYDAT_list)
+
+```
+
+One of the key opportunities for users of the R-package __CSHShydRology__ is that users can tap into the computer functions that are used by other professionals across Canada. Many of the functions have been developed by practitioners and researchers and are shared so that the entire community can perform analysis and interpretation based on the current state of the art.
+The current version of __CSHShydRology__ can be obtained from GitHub at https://github.com/CSHS-CWRA/CSHShydRology. It is planned to release the package through CRAN (https://cran.r-project.org/) later this year.
+
+## The functions `ch_mapper() and ch_get_mapper_data()`
+
+The function `ch_mapper` provides a simple way of mapping stations and results. There are two steps in this process. 
+
+The first uses the function `ch_get_mapper_data()` to define the spatial extent of the map, and the projections that will be used. The `map_directory` can be an existing directory where mapping information is stored, or it can be a directory that does not exist, In that case it will be created and border and river features stored for future use as the function will download or load these from existing files.  
+
+
+In the following code a spatial domain is defined by the `latitude` and `longitude` and the projection is set to "Ablers" (Ablers equal area)".
+
+_note: Need to chat with Dan about alternative projections to include_
+_note: Need to suppress warnings_
+```{r, echo = TRUE }
+
+# set latitude and longitude box
+# Canada  latitude <- (41.6, 83.1); longitude <- ( -51.50, -141.1 )
+# BC      latitude <- (49.0, 60.0); longitude <- (-114.05, -139.1 )
+# AB      latitude <- (49.0, 60.0); longitude <- (-110.00, -139.1 )
+# SK      latitude <- (49.0, 60.0); longitude <- (-101.35, -110.0 )
+# MB      latitude <- (49.0, 60.0); longitude <- (-101.35, -110.0 )
+
+#MB to central BC ~CCRN
+latitude <- c(48.0,  61.0); longitude <- c(-95.2, -128.5)
+
+#########################################################
+# get map data
+
+m_map <- ch_get_mapper_data(latitude,longitude, map_proj = "Albers", map_directory = "C:/map_data")
+
+```
+
+The above result `m_map` is a list that contains the mapping elements to be passed along to `ch_mapper()`
+
+Mapping applications may range from simply showing station locations on a map to demonstrating spatial patterns of statistical analysis.  Several of these are demonstrated in this vignette.
+
+`ch_mapper()` looks after the mapping, but the user has to prepare the data that is fed to the function.  Herein, examples of that code might look is provided.
+
+##  Map the station location
+
+First, we make a simple map of site locations. all that is needed is a source of the station latitude and longitudes. This can be taken from a metadata file for a group of stations.
+
+```{r, echo=TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 1.  Map of western Canada showing a set of station locations."}
+
+###################  get site locations from a file
+
+setwd("C:/p_Rocky Mountain low flow")
+m_data <-read.csv("rm_metadata.csv")
+mlong <- m_data$Longitude
+mlat <- m_data$Latitude
+
+############################  create a dataframe with the latitude and longitude
+location_a <- data.frame(mlong, mlat)
+
+mess <- ch_mapper(m_map, locations = location_a, lo_pch = 17, lo_col = "red")
+
+ 
+
+```
+
+
+##  Map the station locations with some added information and add a legend
+
+Here we use the metadata variable "RHBN" to show which stations are "natural" and which are "RHBN" [Reference Horological Basin Network].  We load the same datafile and create a new variable `mcode` that will contain values of 1 and 2 based on whether the variable "RHBN" is TRUE or NA.  
+
+We also create a variable `mo_col` that is assigned different colours to be applied and we pass that in the call to `ch_mapper()`.  In the call we pass `lo_pch = c(19, 15)` to assign symbols for the points.
+  
+  
+This will result in stations with either black dots or darkgreen squares.
+
+
+```{r, echo=TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 2.  Stations by type."}
+
+###################  get site locations from a file
+setwd("C:/p_Rocky Mountain low flow")
+m_data <-read.csv("rm_metadata.csv")
+mlong <- m_data$Longitude
+mlat <- m_data$Latitude
+mcode <- m_data$RHBN
+mcode[!is.na(mcode)] <- 2
+mcode[is.na(mcode)] <- 1
+mcode <- as.integer(mcode)
+
+location_d <- data.frame(mlong,mlat,mcode)
+
+#set colours for symbols
+mo_col <- c("black","darkgreen")
+
+mess <- ch_mapper(m_map, locations = location_d, lo_pch = c(19,15), lo_col = mo_col)
+              
+
+
+```
+
+
+## add a legend
+
+`lo_text = c("natural", "RHBN")` provide the legend text for the symbols. `pl_cex = 1.1` increases the legend text size,
+and `legend = TRUE` make the legend be plotted.
+
+```{r, echo=TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 3.  Stations by type with legend."}
+
+mess <- ch_mapper(m_map, locations = location_d, lo_pch = c(19,15), lo_col = mo_col, 
+                  lo_text = c("natural", "RHBN"), pl_cex = 1.1, legend = TRUE)
+ 
+```
+
+## plot trend results
+
+Mapping the results of analysis helps see spatial patterns.  In  the following section we plot results from a Mann-Kendall trend test for low flows.  
+
+THe slope with indicate the sign of the trend and the p_value will determine significance. This uses the default criteria of p <= 0.05 , but can be changes using tr_p = 0.xx.
+
+
+
+```{r, echo = TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 4.  Plot of Mann-Kendall trends"}
+
+# read file with trend results
+
+setwd("C:/p_Rocky Mountain low flow")
+t_data <- read.csv("result v2.csv")
+
+#merge trend results with station metadata
+tr_data <- merge(m_data, t_data, by.x="Station", by.y = "station")
+
+#create a dataframe with longitude, latitude, slope and p-value. 
+trend_d <- data.frame(tr_data$Longitude, tr_data$Latitude, tr_data$Sen_slope, tr_data$MK_p_value)
+
+
+mess <- ch_mapper(m_map, trends = trend_d, legend = TRUE)
+
+
+```
+
+
+
+It is possible to change the symbols, their colours, and the legend labels to suit your needs.  This does get a bit more complicated as some available symbols, such as arrowheads, do not alway plot on default devices. 
+
+
+```{r, echo = TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 5.  modified symbols and legend"}
+
+
+
+mess <- ch_mapper(m_map, trends = trend_d, legend=TRUE, 
+          tr_col = c("brown","white", "green"),
+          tr_ltext = c("Bigger", " maybe bigger", "zip", "maybe smaller", "Smaller"),
+          tr_pch = c(-9668, 1, -9658))
+
+```
+
+## Map a variable based on magnitude
+
+.
+
+
+```{r, echo=TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 6.  Map the Hurst coefficient for low flows"}
+
+v_data <- read.csv("c:/p_Rocky Mountain low flow/result v3 E_1a.csv")
+
+vr_data <- merge(m_data, v_data, by.x="Station", by.y = "station")
+
+trend_d <- data.frame(tr_data$Longitude, tr_data$Latitude, tr_data$Sen_slope, tr_data$MK_p_value)
+
+trend_v <- data.frame(vr_data$Longitude, vr_data$Latitude, vr_data$Hs)
+
+mess <- ch_mapper(m_map, variables = trend_v, legend = TRUE, vr_text = "Hurst exponent (Hs)")
+
+
+```
+
+We might wish to demonstrate the actual days of events and the resultant mean and regularity. As in the following example.
+
+```{r, echo=TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 7.  Add labels to map"}
+
+##################################################
+setwd("C:/p_ch_functions")
+xlabels <- read.csv("test_labels.csv")
+
+print(xlabels)
+
+mess <- ch_mapper(m_map, variables = trend_v, legend = TRUE, vr_text = "Hurst exponent (Hs)", x_labels = xlabels)
+
+
+#######################
+
+```
+
+## Add watershed boundaries
+
+Individual watershed shapefiles are read in and added to a list to be passed to the function.
+
+
+
+```{r, echo=TRUE, fig.width = 10, fig.height = 6, fig.cap = "Figure 8. Map with watershed boundaries"}
+
+setwd("C:/p_ccrn/basin shapefiles/Mackenzie River Basin")
+mbasin <-st_read("Mackenzie River Basin.shp")
+setwd("C:/p_ccrn/basin shapefiles/Nelson Churchill Basin")
+nbasin <-st_read("Nelson_outline.shp")
+
+basins <- list(mbasin, nbasin)
+
+
+mess <- ch_mapper(m_map, locations = location_a, lo_pch = 17, lo_col = "red", basins = basins)
+
+
+
+```
+
+The functions demonstrated here will help make mapping results more available using  __CSHShydRology__.
+
+
+_Other articles in this series are available on the hydRology page of the CSHS GreyJay website:_   `https://cshs.cwra.org/greyjay/`
+
+
+
+P.H.Whitfield 

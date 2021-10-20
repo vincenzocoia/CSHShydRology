@@ -1,0 +1,113 @@
+---
+title: "Part 2. Accessing metadata from Water Survey of Canada's HYDAT Database"
+author: "CSHS hydRology Team"
+date: "August 2021"
+output: rmarkdown::word_document
+
+vignette: >
+  %\VignetteIndexEntry{data source differences}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(CSHShydRology)
+library(tidyhydat)
+
+
+
+```
+
+
+One of the key opportunities for users of the R-package __CSHShydRology__ is that users can tap into the computer functions that are used by other professionals across Canada. Many of the functions have been developed by practitioners and researchers and are shared so that the entire community can perform analysis and interpretation based on the current state of the art.
+The current version of __CSHShydRology__ can be obtained from GitHub at https://github.com/CSHS-CWRA/CSHShydRology. It is planned to release the package through CRAN (https://cran.r-project.org/) later this year.
+
+
+## How can you access metadata for Canada's hydrometric network using R?
+
+
+
+There are many options for accessing hydrometric metadata, so it is important to be clear on the goals of your analysis and what fits your needs: this is simply one important form of fitness for purpose. The HYDAT database is updated quarterly, which creates opportunities and risks.  How you choose to do this depends upon whether you want your dataset to be static, i.e. fixed at one point in time, or dynamic, i.e. changing as HYDAT is updated. 
+
+This article, which was written using R Markdown (cran.r-project.org/web/packages/rmarkdown/vignettes/rmarkdown.html), shows how to obtain station metadata from the primary source which is the HYDAT database. There are two main approaches to doing this:
+
+1.	Using the R package __tidyhydat__;
+
+2.	Using ECDataExplorer (ECDE) and saving the station list to a comma-separated values (.csv) file.
+
+Note that all __CSHShydRology__ functions start with  `ch_`
+
+
+## ECDataExplorer (ECDE)
+
+
+ECdataExploer is available at:  
+https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services/explorer.html
+
+ECDE lets one save a text file list of favourite stations  In this example it is `FavHydatStations.tb0`, which is the ECDE default file name.  A copy of this file that contains metadata for 4 stations  has been placed in a repository on __zenodo.org__ and can be accessed via it's URL.
+
+The function `ch_get_ECDE_metadata()` is used to convert the `.tb0` file of favourite stations to a dataframe of tombstone details (i.e. metadata).  There is an option to save the dataframe as a .csv  file.
+
+```{r, echo=TRUE}
+
+ # set the url where the target file is available publicly
+
+ url2 <- "https://zenodo.org/record/4661591/files/FavHydatStations.tb0?download=1"
+
+ e_meta0 <- ch_get_ECDE_metadata (url2)
+
+ # option: e_meta1 <- ch_get_ECDE_metadata(url2, writefile="study_metadata.csv")
+
+# show the structure of the dataframe "e_meta0"
+str(e_meta0)
+
+
+```
+
+
+
+## __tidyhydat__
+
+We can  extract metadata through __tidyhydat__ using the function `ch_tidyhydat_ECDE_meta()`.  This function returns a list.  The first item in the list is a dataframe similar to that obtained from ECDE, the second reports the HYDAT version and date, and the third is a dataframe with all the metadata extracted from __tidyhydat__ but is slightly different to the ECDE version. 
+
+ECDE provides some summary information that we do not capture in with this function, but both do have common tombstone data (StationID, StationName, Latitude and Longitude, etc.).
+
+```{r, echo=TRUE}
+
+stations <-c("05BB001", "05BB003", "05BB004", "05BB005")
+result <-  ch_tidyhydat_ECDE_meta(stations)
+th_metadata <- result[1]
+version <- result[2]
+allmeta <-result[3]
+
+str(th_metadata)
+
+version
+
+str(allmeta)
+
+```
+
+
+Both methods create a dataframe with the information that gets used in other `ch_` functions for plot titles that include StationID, StationName for plotting or mapping (Latitude and Longitude).
+
+The following statement illustrates how to use this dataframe as the source of metadata within __CSHShydRology__:
+
+`HYDAT_list  <- th_metadata`
+
+`HYDAT_list` is the designated name (for __CSHShydRology__) of the dataframe containing the station metadata.  There is a default version of this dataframe, but it could be better to have a version that is  current  to your  project data.
+
+
+ 
+## Always be careful when obtaining data from different sources or even the same source!
+
+
+
+_Other articles in this series are available on the hydRology page of the CSHS GreyJay website:_   `https://cshs.cwra.org/greyjay/`
+
+
+
+P.H.Whitfield 
