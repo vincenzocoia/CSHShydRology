@@ -5,7 +5,7 @@
 #'   
 #' @param DF dataframe of daily streamflow data
 #' @param hyear  month in which the hydrological year starts  default is hyear = 10
-#' @param threshold number of days that are consider enought to be a whole year, default is 365
+#' @param threshold number of days that are consider enough to be a whole year, default is 365
 #'      
 #' @result  a dataframe with years and counts, counts less than the threshold are NA.  This can then be merged with a 
 #' mam series by linking years, and retaining only complete cases as in the example

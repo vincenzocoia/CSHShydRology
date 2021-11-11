@@ -6,6 +6,7 @@
 
 
 
-ch_color_gradient <- function(x, colors=c("darkred", "red","white","green", "darkgreen"), colsteps=100) {
-  return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
+ch_color_gradient <- function(x, colors=c("darkred", "red","white","green", "darkgreen"), colsteps = 100) {
+  if(is.null(x)) stop("x is NULL")
+  return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out = colsteps)) ] )
 }
