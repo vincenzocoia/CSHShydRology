@@ -5,29 +5,58 @@
 \title{Plots the regime of daily streamflows using quantiles}
 \usage{
 ch_regime_plot(
-  DF,
+  DF = NULL,
   wyear = 1,
   colour = TRUE,
   mx = 1,
   metadata = NULL,
-  quant = c(0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05)
+  quant = c(0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05),
+  date = NULL,
+  flow = NULL,
+  data = NULL,
+  id = NULL,
+  ylab = expression(paste("Mean Daily Discharge m("^{
+     3
+ }, "/sec)")),
+  ...
 )
 }
 \arguments{
-\item{DF}{data frame of daily flow data}
+\item{DF}{data frame of daily flow data, containing \code{Date} and
+\code{Flow} columns. Leave as \code{NULL} to supply \code{date} and
+\code{flow} instead.}
 
 \item{wyear}{set \code{wyear = 10} for October, \code{water year = 1} for calendar year, can be any month}
 
 \item{colour}{if \code{TRUE} plot is in colour, if \code{FALSE} plot is grayscale.}
 
-\item{mx}{set the maximum y value; if = 1 then maximum value of the flows is used to set}
-
-\item{metadata}{a data frame of metadata, defaults to HYDAT_list.
+\item{mx}{set the maximum y value; if = 1 then maximum value of the flows is used to set 
 the y-axis value. The value of \code{mx} can be specified to produce a series of plots with the 
 same scale.}
 
+\item{metadata}{a data frame of metadata in which to look up the station. If
+\code{NULL} (the default), \code{HYDAT_list} is used.}
+
 \item{quant}{quantiles; default is \code{quant = c(0.95,0.9,0.75,0.5,0.25,0.1,0.05)}. 
 Can be changed but the length must be 7 and the 4th value must be 0.5 (median)}
+
+\item{date}{Vector of dates, or the name of the column in \code{data} holding
+them (unquoted). Only used when \code{DF} is \code{NULL}.}
+
+\item{flow}{Vector of flows, or the name of the column in \code{data} holding
+them (unquoted). Only used when \code{DF} is \code{NULL}.}
+
+\item{data}{Optional data frame in which to look up \code{date}, \code{flow}
+and \code{id}.}
+
+\item{id}{Gauge code, used to build the plot title; may also be the name of a
+column in \code{data}. If \code{NULL} (the default) no title is created.
+Only used when \code{DF} is \code{NULL}.}
+
+\item{ylab}{Y axis label.}
+
+\item{...}{Other arguments to pass to the \code{plot()} function. These take
+precedence over the defaults set by this function.}
 }
 \value{
 No value is returned; a standard \R graphic is created.
@@ -37,15 +66,43 @@ Produces a regime hydrograph similar to that in the reference. It shows the flow
 day of the year and the maximum and minimum. Parameters can be set to change colours and set the y-scale
 to allow plots of same scale to be produced.
 }
+\details{
+The function accepts data in two ways.
+
+By default it takes a data frame of daily flows as its first argument, which
+must contain \code{Date} and \code{Flow} columns, with the station code in
+the first column. This is the original interface and is unchanged:
+
+\code{ch_regime_plot(CAN05AA008, colour = TRUE, wyear = 1)}
+
+Alternatively, leave \code{DF} unset and supply \code{date} and \code{flow}
+directly, either as vectors or as column names within \code{data}. This
+allows the function to be used with data that are not in the layout above:
+
+\code{ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, id = ID)}
+
+\code{ch_regime_plot(date = my_dates, flow = my_flows)}
+
+The arguments for the second interface are placed after those of the first,
+so existing calls behave exactly as before.
+}
 \examples{
 data(CAN05AA008)
 ch_regime_plot(CAN05AA008, colour = TRUE, wyear = 1)
 
+# Refer to columns of a data frame instead.
+ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, id = ID)
+
+# Or supply vectors, from any source.
+ch_regime_plot(date = CAN05AA008$Date, flow = CAN05AA008$Flow)
+
+# Override plot() defaults through ...; for instance, zoom in on the freshet.
+ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, xlim = c(90, 220))
 }
 \references{
 MacCulloch, G. and P. H. Whitfield (2012). Towards a Stream Classification System 
 for the Canadian Prairie Provinces. Canadian Water Resources Journal 37: 311-332.
 }
 \author{
-Paul Whitfield
+Paul Whitfield, Vincenzo Coia
 }

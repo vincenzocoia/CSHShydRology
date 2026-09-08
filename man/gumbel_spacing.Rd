@@ -16,12 +16,12 @@ scale_x_gumbelAEP(...)
 scale_y_gumbelAEP(...)
 }
 \arguments{
-\item{...}{Arguments to pass to `scale_x_continuous` or `scale_y_continuous`
-from ggplot2.}
+\item{...}{Arguments to pass to \code{scale_x_continuous} or
+\code{scale_y_continuous} from \pkg{ggplot2}.}
 }
 \value{
-The same output as `scale_x_continuous` or `scale_y_continuous`,
-but with the appropriate Gumbel spacing.
+The same output as \code{scale_x_continuous} or
+\code{scale_y_continuous}, but with the appropriate Gumbel spacing.
 }
 \description{
 Transforms return period or annual exceedance probability to be spaced
