@@ -9,6 +9,7 @@
 #' @return The same output as `scale_x_continuous` or `scale_y_continuous`,
 #' but with the appropriate Gumbel spacing.
 #' @rdname gumbel_spacing
+#' @importFrom scales trans_new breaks_log
 #' @examples
 #' library(ggplot2)
 #' df <- data.frame(

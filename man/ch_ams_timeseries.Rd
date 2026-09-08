@@ -28,6 +28,7 @@ a line, which is broken when data are missing.
 }
 \examples{
 library(lubridate)
+library(ggplot2)
 set.seed(42)
 dates <- ymd(paste(
   c(1991:1993, 1995, 1997:2012), "-",

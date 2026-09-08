@@ -14,8 +14,8 @@
 #' Can be changed but the length must be 7 and the 4th value must be 0.5 (median)
 #' @param wyear set \code{wyear = 10} for October, \code{water year = 1} for calendar year, can be any month
 #' @param colour if \code{TRUE} plot is in colour, if \code{FALSE} plot is grayscale.
-#' @param metadata a data frame of metadata to look for gauge code for `id`, 
-#' defaults to `HYDAT_list` and is not used if `id` isn't.
+#' @param metadata a data frame of metadata to look for the gauge code for `id`.
+#' If `NULL` (the default), `HYDAT_list` is used. Not used if `id` isn't.
 #' @param ylab Y axis label.
 #' @param ... Other arguments to pass to the `plot()` function. Will take
 #' precedence over defaults.
@@ -42,7 +42,7 @@
 #' ch_regime_plot2(x, y, xlim = c(90, 220))
 ch_regime_plot2 <- function(
     date, flow, data = NULL, id = NULL, wyear = 1, colour = TRUE,
-    metadata = HYDAT_list, 
+    metadata = NULL, 
     ylab = expression(paste("Mean Daily Discharge (", m^3, "/sec)")),
     quant = c(0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05), ...)
 {  

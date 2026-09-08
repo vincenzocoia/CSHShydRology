@@ -11,7 +11,7 @@ ch_regime_plot2(
   id = NULL,
   wyear = 1,
   colour = TRUE,
-  metadata = HYDAT_list,
+  metadata = NULL,
   ylab = expression(paste("Mean Daily Discharge (", m^3, "/sec)")),
   quant = c(0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05),
   ...
@@ -31,8 +31,8 @@ is bypassed.}
 
 \item{colour}{if \code{TRUE} plot is in colour, if \code{FALSE} plot is grayscale.}
 
-\item{metadata}{a data frame of metadata to look for gauge code for `id`, 
-defaults to `HYDAT_list` and is not used if `id` isn't.}
+\item{metadata}{a data frame of metadata to look for the gauge code for `id`.
+If `NULL` (the default), `HYDAT_list` is used. Not used if `id` isn't.}
 
 \item{ylab}{Y axis label.}
 
