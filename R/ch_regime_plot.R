@@ -12,20 +12,23 @@
 #'
 #' \code{ch_regime_plot(CAN05AA008, colour = TRUE, wyear = 1)}
 #'
-#' Alternatively, leave \code{DF} unset and supply \code{date} and \code{flow}
-#' directly, either as vectors or as column names within \code{data}. This
-#' allows the function to be used with data that are not in the layout above:
+#' Alternatively, name the columns to use. They are looked up in \code{DF},
+#' which lets the function work with data frames that are not in the layout
+#' above:
 #'
-#' \code{ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, id = ID)}
+#' \code{ch_regime_plot(CAN05AA008, date = Date, flow = Flow, id = ID)}
+#'
+#' Or leave \code{DF} unset and pass vectors, from any source at all:
 #'
 #' \code{ch_regime_plot(date = my_dates, flow = my_flows)}
 #'
 #' The arguments for the second interface are placed after those of the first,
 #' so existing calls behave exactly as before.
 #'
-#' @param DF data frame of daily flow data, containing \code{Date} and
-#' \code{Flow} columns. Leave as \code{NULL} to supply \code{date} and
-#' \code{flow} instead.
+#' @param DF data frame of daily flow data. Used on its own, it must contain
+#' \code{Date} and \code{Flow} columns, with the station code in the first
+#' column. It is also the place \code{date}, \code{flow} and \code{id} are
+#' looked up when those are given. Leave as \code{NULL} to supply vectors.
 #' @param quant quantiles; default is \code{quant = c(0.95,0.9,0.75,0.5,0.25,0.1,0.05)}. 
 #' Can be changed but the length must be 7 and the 4th value must be 0.5 (median)
 #' @param wyear set \code{wyear = 10} for October, \code{water year = 1} for calendar year, can be any month
@@ -35,15 +38,14 @@
 #' same scale.
 #' @param metadata a data frame of metadata in which to look up the station. If
 #' \code{NULL} (the default), \code{HYDAT_list} is used.
-#' @param date Vector of dates, or the name of the column in \code{data} holding
-#' them (unquoted). Only used when \code{DF} is \code{NULL}.
-#' @param flow Vector of flows, or the name of the column in \code{data} holding
-#' them (unquoted). Only used when \code{DF} is \code{NULL}.
-#' @param data Optional data frame in which to look up \code{date}, \code{flow}
-#' and \code{id}.
+#' @param date Vector of dates, or the name of the column in \code{DF} holding
+#' them (unquoted). Supply with \code{flow} instead of relying on the
+#' \code{Date} and \code{Flow} columns of \code{DF}.
+#' @param flow Vector of flows, or the name of the column in \code{DF} holding
+#' them (unquoted).
 #' @param id Gauge code, used to build the plot title; may also be the name of a
-#' column in \code{data}. If \code{NULL} (the default) no title is created.
-#' Only used when \code{DF} is \code{NULL}.
+#' column in \code{DF}. If \code{NULL} (the default) no title is created.
+#' Only used alongside \code{date} and \code{flow}.
 #' @param ylab Y axis label.
 #' @param ... Other arguments to pass to the \code{plot()} function. These take
 #' precedence over the defaults set by this function.
@@ -61,18 +63,18 @@
 #' data(CAN05AA008)
 #' ch_regime_plot(CAN05AA008, colour = TRUE, wyear = 1)
 #'
-#' # Refer to columns of a data frame instead.
-#' ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, id = ID)
+#' # Name the columns to use, for data frames not in the layout above.
+#' ch_regime_plot(CAN05AA008, date = Date, flow = Flow, id = ID)
 #'
 #' # Or supply vectors, from any source.
 #' ch_regime_plot(date = CAN05AA008$Date, flow = CAN05AA008$Flow)
 #'
 #' # Override plot() defaults through ...; for instance, zoom in on the freshet.
-#' ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, xlim = c(90, 220))
+#' ch_regime_plot(CAN05AA008, date = Date, flow = Flow, xlim = c(90, 220))
 ch_regime_plot <- function(DF = NULL, wyear = 1, colour = TRUE, mx = 1,
                            metadata = NULL,
                            quant = c(0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05),
-                           date = NULL, flow = NULL, data = NULL, id = NULL,
+                           date = NULL, flow = NULL, id = NULL,
                            ylab = expression(paste("Mean Daily Discharge m("^{3}, "/sec)")),
                            ...)
 {
@@ -80,10 +82,22 @@ ch_regime_plot <- function(DF = NULL, wyear = 1, colour = TRUE, mx = 1,
   q_flow <- rlang::enquo(flow)
   q_id <- rlang::enquo(id)
 
-  if (!is.null(DF)) {
-    # ---------------------------------------------- original interface
-    if (!rlang::quo_is_null(q_date) || !rlang::quo_is_null(q_flow)) {
-      stop("Supply either `DF` or `date` and `flow`, not both.", call. = FALSE)
+  if (!rlang::quo_is_null(q_date) || !rlang::quo_is_null(q_flow)) {
+    # ------------------- `date` and `flow` given; DF, if any, is the data source
+    if (rlang::quo_is_null(q_date) || rlang::quo_is_null(q_flow)) {
+      stop("Supply both `date` and `flow`.", call. = FALSE)
+    }
+    if (!is.null(DF) && !is.data.frame(DF)) {
+      stop("`DF` must be a data frame. To supply vectors, use `date` and `flow`.",
+           call. = FALSE)
+    }
+    date <- rlang::eval_tidy(q_date, data = DF)
+    flow <- rlang::eval_tidy(q_flow, data = DF)
+    id <- unique(rlang::eval_tidy(q_id, data = DF))
+  } else {
+    # ------------------------------------------------- original interface
+    if (is.null(DF)) {
+      stop("Supply either `DF`, or both `date` and `flow`.", call. = FALSE)
     }
     if (!is.data.frame(DF)) {
       stop("`DF` must be a data frame. To supply vectors, use `date` and `flow`.",
@@ -95,14 +109,6 @@ ch_regime_plot <- function(DF = NULL, wyear = 1, colour = TRUE, mx = 1,
     date <- DF$Date
     flow <- DF$Flow
     id <- DF[1, 1]
-  } else {
-    # ---------------------------------------------- vectors or column names
-    if (rlang::quo_is_null(q_date) || rlang::quo_is_null(q_flow)) {
-      stop("Supply either `DF`, or both `date` and `flow`.", call. = FALSE)
-    }
-    date <- rlang::eval_tidy(q_date, data = data)
-    flow <- rlang::eval_tidy(q_flow, data = data)
-    id <- unique(rlang::eval_tidy(q_id, data = data))
   }
 
   v <- vctrs::vec_recycle_common(flow, date)

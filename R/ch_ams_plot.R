@@ -1,8 +1,8 @@
-#' Produce a Time Series Plot
+#' Plot an annual maximum series
 #'
-#' Uses ggplot2 to produce a time series plot of values (e.g., flow) 
-#' over time, where time is binned by year. Subsequent years are connected with
-#' a line, which is broken when data are missing.
+#' Uses ggplot2 to produce a time series plot of values (e.g., annual maximum
+#' flow) over time, where time is binned by year. Subsequent years are connected
+#' with a line, which is broken where a year is missing.
 #'
 #' @param date Vector of dates or years, or name of data column containing the 
 #' dates (unquoted).
@@ -14,23 +14,21 @@
 #' @returns A ggplot2 object. This means that you are able to add more layers
 #' downstream.
 #' @examples
-#' library(lubridate)
 #' library(ggplot2)
-#' set.seed(42)
-#' dates <- ymd(paste(
-#'   c(1991:1993, 1995, 1997:2012), "-",
-#'   sample(1:12, size = 20, replace = TRUE), "-",
-#'   sample(1:28, size = 20, replace = TRUE)
-#' ))
-#' y <- stats::rexp(20)
-#' y[18] <- NA
-#' ch_ams_timeseries(dates, y)
-#' df <- data.frame(year = year(dates), flow = y)
-#' ch_ams_timeseries(year, 35.31467 * flow, data = df) +
-#'   ylab("Peak Instantaneous Flow (cfs)") +
+#'
+#' # Annual maximum series for a Water Survey of Canada gauge.
+#' ams <- ch_rfa_extractamax(Flow ~ Date, CAN05AA008, tol = 350)
+#' ch_ams_plot(Date, Flow, data = ams)
+#'
+#' # The returned object is a ggplot, so it can be added to.
+#' ch_ams_plot(Date, 35.31467 * Flow, data = ams) +
+#'   ylab("Annual maximum daily discharge (cfs)") +
 #'   theme_bw()
+#'
+#' # Vectors work too, from any source.
+#' ch_ams_plot(ams$Date, ams$Flow)
 #' @export
-ch_ams_timeseries <- function(date, flow, data = NULL) {
+ch_ams_plot <- function(date, flow, data = NULL) {
   in_date <- rlang::enquo(date)
   in_flow <- rlang::enquo(flow)
   name_flow <- names(rlang::quos_auto_name(list(in_flow)))

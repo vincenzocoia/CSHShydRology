@@ -1,4 +1,4 @@
-context("Testing ch_ams_timeseries")
+context("Testing ch_ams_plot")
 
 make_ams <- function() {
   data.frame(
@@ -9,19 +9,19 @@ make_ams <- function() {
 
 test_that("a ggplot object is returned", {
   ams <- make_ams()
-  expect_s3_class(ch_ams_timeseries(ams$year, ams$flow), "ggplot")
+  expect_s3_class(ch_ams_plot(ams$year, ams$flow), "ggplot")
 })
 
 test_that("columns of `data` can be referred to by name", {
   ams <- make_ams()
-  p_cols <- ch_ams_timeseries(year, flow, data = ams)
-  p_vecs <- ch_ams_timeseries(ams$year, ams$flow)
+  p_cols <- ch_ams_plot(year, flow, data = ams)
+  p_vecs <- ch_ams_plot(ams$year, ams$flow)
   expect_equal(p_cols$data, p_vecs$data)
 })
 
 test_that("missing years are filled with NA so the line breaks", {
   ams <- make_ams()
-  d <- ch_ams_timeseries(year, flow, data = ams)$data
+  d <- ch_ams_plot(year, flow, data = ams)$data
   # every year in the range is present, including the two gaps
   expect_equal(d$year, 1991:2000)
   expect_true(is.na(d$flow[d$year == 1994]))
@@ -31,24 +31,24 @@ test_that("missing years are filled with NA so the line breaks", {
 
 test_that("dates are reduced to their year", {
   dates <- as.Date(c("1991-06-02", "1992-05-14", "1993-07-30"))
-  d <- ch_ams_timeseries(dates, c(1, 2, 3))$data
+  d <- ch_ams_plot(dates, c(1, 2, 3))$data
   expect_equal(d$year, 1991:1993)
 })
 
 test_that("expressions are evaluated within `data`", {
   ams <- make_ams()
-  d <- ch_ams_timeseries(year, 2 * flow, data = ams)$data
+  d <- ch_ams_plot(year, 2 * flow, data = ams)$data
   expect_equal(d$flow[d$year == 1991], 20)
 })
 
 test_that("inputs of incompatible length are rejected", {
-  expect_error(ch_ams_timeseries(1991:1995, c(1, 2)))
+  expect_error(ch_ams_plot(1991:1995, c(1, 2)))
 })
 
 test_that("it works on a real annual maximum series", {
   skip_on_cran()
   ams <- ch_rfa_extractamax(Flow ~ Date, CAN05AA008, tol = 350)
-  p <- ch_ams_timeseries(Date, Flow, data = ams)
+  p <- ch_ams_plot(Date, Flow, data = ams)
   expect_s3_class(p, "ggplot")
   expect_true(nrow(p$data) >= nrow(ams))
 })

@@ -25,9 +25,9 @@ test_that("existing positional calls are unaffected by the added arguments", {
   ))
 })
 
-test_that("date and flow can be given as columns of `data`", {
+test_that("date and flow can be given as columns of DF", {
   expect_true(quiet_plot(
-    ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, id = ID)
+    ch_regime_plot(CAN05AA008, date = Date, flow = Flow, id = ID)
   ))
 })
 
@@ -39,17 +39,14 @@ test_that("date and flow can be given as vectors, with no station id", {
 
 test_that("plot() defaults can be overridden through ...", {
   expect_true(quiet_plot(
-    ch_regime_plot(date = Date, flow = Flow, data = CAN05AA008, xlim = c(90, 220))
+    ch_regime_plot(CAN05AA008, date = Date, flow = Flow, xlim = c(90, 220))
   ))
 })
 
-test_that("the two interfaces are mutually exclusive", {
-  expect_error(
-    ch_regime_plot(CAN05AA008, date = Date, flow = Flow),
-    "not both"
-  )
+test_that("incomplete or absent input is reported clearly", {
   expect_error(ch_regime_plot(), "either")
-  expect_error(ch_regime_plot(date = CAN05AA008$Date), "either")
+  expect_error(ch_regime_plot(date = CAN05AA008$Date), "both")
+  expect_error(ch_regime_plot(flow = CAN05AA008$Flow), "both")
 })
 
 test_that("a malformed data frame is reported clearly", {
@@ -63,4 +60,10 @@ test_that("more than one station id is rejected", {
                    id = c("05AA008", "01AD002")),
     "more than one station"
   )
+})
+
+test_that("DF supplies both the data and the named columns", {
+  # the same plot, reached two ways
+  expect_true(quiet_plot(ch_regime_plot(CAN05AA008)))
+  expect_true(quiet_plot(ch_regime_plot(CAN05AA008, date = Date, flow = Flow)))
 })
