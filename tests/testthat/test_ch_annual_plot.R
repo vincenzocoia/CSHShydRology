@@ -46,7 +46,6 @@ test_that("inputs of incompatible length are rejected", {
 })
 
 test_that("it works on a real annual maximum series", {
-  skip_on_cran()
   ams <- ch_rfa_extractamax(Flow ~ Date, CAN05AA008, tol = 350)
   p <- ch_annual_plot(Date, Flow, data = ams)
   expect_s3_class(p, "ggplot")

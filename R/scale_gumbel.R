@@ -12,46 +12,56 @@
 #' @importFrom scales trans_new breaks_log
 #' @examples
 #' library(ggplot2)
-#' df <- data.frame(
-#'   y = sort(stats::rexp(100), decreasing = TRUE),
-#'   aep = 1:100 / 101
-#' )
 #'
-#' ggplot(df, aes(aep, y)) +
-#'   geom_point() +
-#'   scale_x_gumbelAEP()
+#' # A flood frequency plot: annual maximum flows against the probability of
+#' # being exceeded in any given year, on Gumbel spacing.
+#' ams <- ch_rfa_extractamax(Flow ~ Date, CAN05AA008, tol = 350)
+#' ams <- ams[order(ams$Flow), ]
+#' # Weibull plotting positions
+#' ams$aep <- 1 - seq_len(nrow(ams)) / (nrow(ams) + 1)
 #'
-#' ggplot(df, aes(1 / aep, y)) +
+#' ggplot(ams, aes(aep, Flow)) +
 #'   geom_point() +
-#'   scale_x_gumbelRP("Return Period")
+#'   scale_x_gumbel_aep("Annual exceedance probability") +
+#'   ylab(expression(paste("Annual maximum daily discharge (", m^3, "/s)")))
+#'
+#' # The same data, read as return periods instead.
+#' ggplot(ams, aes(1 / aep, Flow)) +
+#'   geom_point() +
+#'   scale_x_gumbel_rp("Return period (years)")
+#'
+#' # The y variants behave the same way.
+#' ggplot(ams, aes(Flow, 1 / aep)) +
+#'   geom_point() +
+#'   scale_y_gumbel_rp("Return period (years)")
 #' @export
-scale_x_gumbelRP <- function(...) {
-  ggplot2::scale_x_continuous(..., trans = gumbelRP_trans())
+scale_x_gumbel_rp <- function(...) {
+  ggplot2::scale_x_continuous(..., trans = ch_gumbel_rp_trans())
 }
 
 #' @rdname gumbel_spacing
 #' @export
-scale_y_gumbelRP <- function(...) {
-  ggplot2::scale_y_continuous(..., trans = gumbelRP_trans())
+scale_y_gumbel_rp <- function(...) {
+  ggplot2::scale_y_continuous(..., trans = ch_gumbel_rp_trans())
 }
 
 #' @rdname gumbel_spacing
 #' @export
-scale_x_gumbelAEP <- function(...) {
-  ggplot2::scale_x_continuous(..., trans = gumbelAEP_trans())
+scale_x_gumbel_aep <- function(...) {
+  ggplot2::scale_x_continuous(..., trans = ch_gumbel_aep_trans())
 }
 
 #' @rdname gumbel_spacing
 #' @export
-scale_y_gumbelAEP <- function(...) {
-  ggplot2::scale_y_continuous(..., trans = gumbelAEP_trans())
+scale_y_gumbel_aep <- function(...) {
+  ggplot2::scale_y_continuous(..., trans = ch_gumbel_aep_trans())
 }
 
 #' Gumbel transformations used for ggplot2 scales
 #'
 #' Build the transformation objects underlying the \code{scale_*_gumbel*()}
-#' functions. \code{gumbelRP_trans()} works on return periods (values greater
-#' than 1); \code{gumbelAEP_trans()} works on annual exceedance probabilities
+#' functions. \code{ch_gumbel_rp_trans()} works on return periods (values greater
+#' than 1); \code{ch_gumbel_aep_trans()} works on annual exceedance probabilities
 #' (values between 0 and 1). Both map their input onto the reduced Gumbel
 #' variate \eqn{-\log(-\log(1 - p))}.
 #'
@@ -61,17 +71,17 @@ scale_y_gumbelAEP <- function(...) {
 #'
 #' @return A \code{transform} object, as produced by
 #' \code{\link[scales]{trans_new}}.
-#' @rdname gumbel_trans
+#' @rdname ch_gumbel_trans
 #' @examples
-#' tr <- gumbelRP_trans()
+#' tr <- ch_gumbel_rp_trans()
 #' tr$transform(c(2, 10, 100))
 #'
-#' tr_aep <- gumbelAEP_trans()
+#' tr_aep <- ch_gumbel_aep_trans()
 #' tr_aep$transform(c(0.5, 0.1, 0.01))
 #' @export
-gumbelRP_trans <- function() {
+ch_gumbel_rp_trans <- function() {
   scales::trans_new(
-    "gumbelRP",
+    "gumbel_rp",
     transform = function(x) -log(-log(1 - 1 / x)),
     inverse = function(x) 1 / (1 - exp(-exp(-x))),
     breaks = scales::breaks_log(),
@@ -79,11 +89,11 @@ gumbelRP_trans <- function() {
   )
 }
 
-#' @rdname gumbel_trans
+#' @rdname ch_gumbel_trans
 #' @export
-gumbelAEP_trans <- function() {
+ch_gumbel_aep_trans <- function() {
   scales::trans_new(
-    "gumbelAEP",
+    "gumbel_aep",
     transform = function(x) -log(-log(1 - x)),
     inverse = function(x) 1 - exp(-exp(-x)),
     breaks = scales::breaks_log(),

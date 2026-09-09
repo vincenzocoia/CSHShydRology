@@ -1,9 +1,7 @@
 #' Plot a series of annual values
 #'
 #' Uses ggplot2 to produce a time series plot of values (e.g., annual maximum
-#' flow) over time, where time is binned by year. The value need not be a
-#' maximum of any kind; the function simply plots one series of values against
-#' a discretized year.
+#' flow) over time, where time is binned by year.
 #'
 #' Every year between the first and last is included, so a year with no data
 #' carries an \code{NA} and the connecting line is broken there rather than

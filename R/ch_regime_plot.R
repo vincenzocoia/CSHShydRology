@@ -72,11 +72,16 @@
 #'
 #' # Override plot() defaults through ...; for instance, zoom in on the freshet.
 #' ch_regime_plot(CAN05AA008, date = Date, flow = Flow, xlim = c(90, 220))
-ch_regime_plot <- function(DF = NULL, wyear = 1, colour = TRUE, mx = 1,
+ch_regime_plot <- function(DF = NULL,
+                           wyear = 1,
+                           colour = TRUE,
+                           mx = 1,
                            metadata = NULL,
                            quant = c(0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05),
-                           date = NULL, flow = NULL, id = NULL, ...)
-{
+                           date = NULL,
+                           flow = NULL,
+                           id = NULL,
+                           ...) {
   q_date <- rlang::enquo(date)
   q_flow <- rlang::enquo(flow)
   q_id <- rlang::enquo(id)
