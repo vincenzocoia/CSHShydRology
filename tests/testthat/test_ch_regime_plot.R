@@ -1,6 +1,13 @@
 context("Testing ch_regime_plot")
 
-# Rendering to a null device; these check the calling contract, not the pixels.
+# Asserts only that the call runs to completion without throwing. Nothing here
+# inspects what was drawn, so these pin the calling contract -- that arguments
+# still bind as they did, that the guards fire -- and not the graphics.
+#
+# pdf(NULL) sends output to a null device, which also stops base plotting from
+# leaving an Rplots.pdf behind in the working directory. force() is required:
+# `expr` arrives as an unevaluated promise, so without it the plotting call
+# would never run and the test would pass while testing nothing.
 quiet_plot <- function(expr) {
   pdf(NULL)
   on.exit(dev.off())
