@@ -22,8 +22,8 @@
 #'
 #' \code{ch_regime_plot(date = my_dates, flow = my_flows)}
 #'
-#' The arguments for the second interface are placed after those of the first,
-#' so existing calls behave exactly as before.
+#' The arguments of the second interface come after those of the first, so any
+#' call written for the original interface behaves identically.
 #'
 #' @param DF data frame of daily flow data. Used on its own, it must contain
 #' \code{Date} and \code{Flow} columns, with the station code in the first
@@ -46,9 +46,10 @@
 #' @param id Gauge code, used to build the plot title; may also be the name of a
 #' column in \code{DF}. If \code{NULL} (the default) no title is created.
 #' Only used alongside \code{date} and \code{flow}.
-#' @param ylab Y axis label.
 #' @param ... Other arguments to pass to the \code{plot()} function. These take
-#' precedence over the defaults set by this function.
+#' precedence over the defaults set by this function, so passing \code{ylab},
+#' \code{xlim} or \code{main} here overrides the default that would otherwise
+#' be used.
 #' 
 #' @return No value is returned; a standard \R graphic is created.
 #' @author Paul Whitfield, Vincenzo Coia
@@ -74,9 +75,7 @@
 ch_regime_plot <- function(DF = NULL, wyear = 1, colour = TRUE, mx = 1,
                            metadata = NULL,
                            quant = c(0.95, 0.9, 0.75, 0.5, 0.25, 0.1, 0.05),
-                           date = NULL, flow = NULL, id = NULL,
-                           ylab = expression(paste("Mean Daily Discharge m("^{3}, "/sec)")),
-                           ...)
+                           date = NULL, flow = NULL, id = NULL, ...)
 {
   q_date <- rlang::enquo(date)
   q_flow <- rlang::enquo(flow)
@@ -193,7 +192,8 @@ ch_regime_plot <- function(DF = NULL, wyear = 1, colour = TRUE, mx = 1,
   # Allow override of default plot options by evaluating in a data mask.
   plot_defaults <- rlang::env(
     xlab = "", xaxt = "n", col = colr[4],
-    cex = 0.5, ylab = ylab, xlim = c(1, 366),
+    cex = 0.5, xlim = c(1, 366),
+    ylab = expression(paste("Mean Daily Discharge m("^{3}, "/sec)")),
     main = title, cex.main = tscale,
     ylim = ylims
   )

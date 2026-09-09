@@ -1,8 +1,18 @@
-#' Plot an annual maximum series
+#' Plot a series of annual values
 #'
 #' Uses ggplot2 to produce a time series plot of values (e.g., annual maximum
-#' flow) over time, where time is binned by year. Subsequent years are connected
-#' with a line, which is broken where a year is missing.
+#' flow) over time, where time is binned by year. The value need not be a
+#' maximum of any kind; the function simply plots one series of values against
+#' a discretized year.
+#'
+#' Every year between the first and last is included, so a year with no data
+#' carries an \code{NA} and the connecting line is broken there rather than
+#' drawn across the gap. This is deliberate: a continuous line across a period
+#' of missing record implies a continuity that the data do not support.
+#'
+#' The function expects at most one value per year. If a year appears more than
+#' once, every value is kept and plotted, so the line doubles back on itself
+#' within that year. This is not checked for, and no warning is given.
 #'
 #' @param date Vector of dates or years, or name of data column containing the 
 #' dates (unquoted).
@@ -18,17 +28,17 @@
 #'
 #' # Annual maximum series for a Water Survey of Canada gauge.
 #' ams <- ch_rfa_extractamax(Flow ~ Date, CAN05AA008, tol = 350)
-#' ch_ams_plot(Date, Flow, data = ams)
+#' ch_annual_plot(Date, Flow, data = ams)
 #'
 #' # The returned object is a ggplot, so it can be added to.
-#' ch_ams_plot(Date, 35.31467 * Flow, data = ams) +
+#' ch_annual_plot(Date, 35.31467 * Flow, data = ams) +
 #'   ylab("Annual maximum daily discharge (cfs)") +
 #'   theme_bw()
 #'
 #' # Vectors work too, from any source.
-#' ch_ams_plot(ams$Date, ams$Flow)
+#' ch_annual_plot(ams$Date, ams$Flow)
 #' @export
-ch_ams_plot <- function(date, flow, data = NULL) {
+ch_annual_plot <- function(date, flow, data = NULL) {
   in_date <- rlang::enquo(date)
   in_flow <- rlang::enquo(flow)
   name_flow <- names(rlang::quos_auto_name(list(in_flow)))

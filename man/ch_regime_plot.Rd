@@ -14,9 +14,6 @@ ch_regime_plot(
   date = NULL,
   flow = NULL,
   id = NULL,
-  ylab = expression(paste("Mean Daily Discharge m("^{
-     3
- }, "/sec)")),
   ...
 )
 }
@@ -51,10 +48,10 @@ them (unquoted).}
 column in \code{DF}. If \code{NULL} (the default) no title is created.
 Only used alongside \code{date} and \code{flow}.}
 
-\item{ylab}{Y axis label.}
-
 \item{...}{Other arguments to pass to the \code{plot()} function. These take
-precedence over the defaults set by this function.}
+precedence over the defaults set by this function, so passing \code{ylab},
+\code{xlim} or \code{main} here overrides the default that would otherwise
+be used.}
 }
 \value{
 No value is returned; a standard \R graphic is created.
@@ -83,8 +80,8 @@ Or leave \code{DF} unset and pass vectors, from any source at all:
 
 \code{ch_regime_plot(date = my_dates, flow = my_flows)}
 
-The arguments for the second interface are placed after those of the first,
-so existing calls behave exactly as before.
+The arguments of the second interface come after those of the first, so any
+call written for the original interface behaves identically.
 }
 \examples{
 data(CAN05AA008)
